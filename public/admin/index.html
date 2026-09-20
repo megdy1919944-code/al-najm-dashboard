@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/admin/">
+  <title>لوحة التحكم السحابية الشاملة | النجم - Al-Najm</title>
+  
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Fonts: Cairo & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN for Standalone UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      color: #020617; /* Deep black text */
+      background-color: #f1f5f9; /* Off-white / dark-white */
+    }
+    /* Ruled table lines, crisp boundaries & horizontal watery rectangle layout */
+    table {
+      white-space: nowrap;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    table th, table td {
+      white-space: nowrap;
+    }
+    /* Horizontal rectangular ruled strips with very soft watery tint (مستطيل أفقي مسطر بلون مائي خفيف جداً) */
+    table tbody tr {
+      border-bottom: 1.5px solid #cbd5e1;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    table tbody tr:nth-child(odd) {
+      background-color: #f7fbfd; /* لون مائي خفيف جداً جداً جداً */
+    }
+    table tbody tr:nth-child(even) {
+      background-color: #edf6f9; /* مستطيل مائي متناسق */
+    }
+    table tbody tr:hover {
+      background-color: #dff0f5 !important; /* إبراز مائي خفيف وواضح عند التمرير */
+    }
+    table thead th {
+      background-color: #e6f1f4; /* ترويسة مائية محددة وواضحة */
+      border-bottom: 2px solid #94a3b8 !important;
+    }
+    /* Subtle light shadow & defined boundaries for table cards */
+    .table-subtle-shadow {
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    }
+
+    /* Print Styles for Host Statement & Audit */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #officialHostStatementPrintContainer,
+      #officialHostStatementPrintContainer * {
+        visibility: visible !important;
+      }
+      #officialHostStatementPrintContainer {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Cairo', sans-serif !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-950 h-screen overflow-hidden antialiased flex flex-col selection:bg-amber-500 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- 1. شاشة تسجيل الدخول الآمنة (Standalone Login View) -->
+  <!-- ===================================================================== -->
+  <div id="loginSection" class="h-screen w-full flex items-center justify-center p-4 bg-slate-100 relative overflow-hidden hidden">
+    <!-- Ambient subtle backdrop -->
+    <div class="absolute top-1/4 -right-20 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 -left-20 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-xl space-y-6 relative z-10 text-slate-950">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 mx-auto flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <i data-lucide="shield-check" class="w-9 h-9 text-slate-950"></i>
+        </div>
+        <h1 class="text-2xl font-black text-slate-950">النجم (Al-Najm)</h1>
+        <p class="text-xs text-slate-600 font-bold">لوحة التحكم المستقلة للإدارة العليا - مجدي (Megdy)</p>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-black text-slate-900 mb-1.5">اسم مستخدم الإدارة</label>
+          <div class="relative">
+            <input type="text" id="loginUser" required placeholder="superadmin" class="w-full pl-4 pr-10 py-3 rounded-2xl bg-slate-50 border border-slate-300 text-sm font-bold text-slate-950 focus:bg-white focus:outline-amber-500 placeholder:text-slate-500">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute right-3.5 top-3.5"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-black text-slate-900 mb-1.5">كلمة مرور الأمان</label>
+          <div class="relative">
+            <input type="password" id="loginPass" required placeholder="••••••••" class="w-full pl-4 pr-10 py-3 rounded-2xl bg-slate-50 border border-slate-300 text-sm font-bold text-slate-950 focus:bg-white focus:outline-amber-500 placeholder:text-slate-500">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute right-3.5 top-3.5"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition shadow-lg shadow-amber-500/20 cursor-pointer">
+          تسجيل الدخول الآمن للوحة التحكم
+        </button>
+      </form>
+
+      <div class="pt-2 text-center">
+        <button onclick="fillDemoCredentials()" class="text-xs text-amber-700 hover:text-amber-600 font-black underline transition cursor-pointer">
+          ملء بيانات الدخول الافتراضية (superadmin)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. واجهة لوحة التحكم الكاملة (Standalone Web Dashboard) -->
+  <!-- ===================================================================== -->
+  <div id="dashboardSection" class="h-screen w-full flex flex-col bg-slate-100 text-slate-950 overflow-hidden">
+    
+    <!-- Header identical to screenshot -->
+    <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 shadow-xs">
+      <!-- Right Side: Hamburger (3 stripes), Brand & Breadcrumb -->
+      <div class="flex items-center gap-3">
+        <!-- زر الثلاث شرطات لإظهار وإخفاء القائمة الجانبية -->
+        <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition cursor-pointer flex items-center justify-center border border-slate-200 shadow-xs" title="إظهار / إخفاء القائمة الجانبية (3 شرطات)">
+          <i data-lucide="menu" class="w-5 h-5 text-amber-600 stroke-[2.5]"></i>
+        </button>
+
+        <div class="w-9 h-9 rounded-xl overflow-hidden border border-amber-400/80 shadow-md shadow-amber-500/20 shrink-0 bg-slate-950 flex items-center justify-center">
+          <img src="/app-logo.png" alt="النجم" class="w-full h-full object-cover">
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-sm text-slate-950">النجم - Web Console</span>
+            <span class="text-[11px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">v5.0 Pro</span>
+          </div>
+          <p id="currentViewBreadcrumb" class="text-[11px] text-slate-600 font-bold">إدارة الهدايا - VIP إهداء (vips_dedic)</p>
+        </div>
+      </div>
+
+      <!-- Left Side: User profile, quick actions, logout -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- زر تحميل حزمة الداشبورد كاملة ZIP -->
+        <button 
+          type="button" 
+          onclick="window.openDownloadZipModal()" 
+          class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 transition cursor-pointer flex items-center gap-1.5 text-xs font-black shadow-xs active:scale-95" 
+          title="تحميل حزمة لوحة التحكم كاملة بجميع ملفاتها وصيغها (ZIP)">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-white"></i>
+          <span class="hidden sm:inline">تحميل الداشبورد كامل (ZIP) 📦</span>
+        </button>
+
+        <!-- زر ملء الشاشة للرؤية بوضوح تام -->
+        <button id="fullscreenToggleBtn" onclick="toggleAdminFullscreen()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 transition cursor-pointer flex items-center gap-1.5 text-xs font-black shadow-xs active:scale-95" title="ملء الشاشة بالكامل للرؤية بوضوح تام">
+          <i data-lucide="maximize" class="w-3.5 h-3.5 text-amber-700"></i>
+          <span class="hidden sm:inline">ملء الشاشة ⛶</span>
+        </button>
+
+        <!-- زر الانتقال السريع لمعاينة تطبيق الموبايل -->
+        <button onclick="returnToMobileApp()" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-xs active:scale-95" title="الرجوع لمعاينة تطبيق الموبايل">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5 text-indigo-600"></i>
+          <span class="hidden sm:inline">تطبيق الموبايل 📱</span>
+        </button>
+
+        <!-- Search bar (قائمة البحث في الأعلى: بالاسم أو ID أو اسم الوكيل شخصياً أو رقم جواله) -->
+        <div id="globalAdminSearchContainer" class="relative z-50">
+          <div class="relative flex items-center">
+            <input 
+              type="text" 
+              id="globalAdminSearchInput"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="بحث بالاسم، ID، اسم الوكيل، أو رقم الجوال..." 
+              class="w-48 sm:w-64 md:w-80 lg:w-96 pl-8 pr-9 py-1.5 rounded-xl bg-slate-50 hover:bg-white focus:bg-white border-2 border-slate-300 focus:border-amber-500 text-xs font-bold text-slate-950 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-xs"
+              oninput="window.handleGlobalSearchInput(event)"
+              onkeydown="window.handleGlobalSearchKeydown(event)"
+              onfocus="window.handleGlobalSearchFocus(event)"
+            />
+            <!-- Search icon on right (RTL) -->
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute right-2.5 pointer-events-none"></i>
+            
+            <!-- Clear button & Keyboard shortcut hint on left (RTL) -->
+            <div class="absolute left-2 flex items-center gap-1">
+              <button 
+                type="button" 
+                id="globalAdminSearchClearBtn" 
+                onclick="window.clearGlobalSearch()" 
+                class="hidden w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center text-[10px] font-black transition cursor-pointer"
+                title="تفريغ البحث">
+                ✕
+              </button>
+              <kbd class="hidden xl:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-200 text-slate-700 rounded-md border border-slate-300">Ctrl+K</kbd>
+            </div>
+          </div>
+
+          <!-- Dynamic Results Dropdown (قائمة البحث المنسدلة الذكية والخفيفة) -->
+          <div 
+            id="globalAdminSearchResultsMenu" 
+            class="hidden absolute top-full mt-2 right-0 w-80 sm:w-96 md:w-[460px] lg:w-[520px] bg-white rounded-2xl border-2 border-slate-300 shadow-[0_12px_40px_-6px_rgba(15,23,42,0.18)] overflow-hidden flex flex-col max-h-[82vh] text-slate-950 text-right z-50">
+            <!-- Dynamically populated by admin.js -->
+          </div>
+        </div>
+
+        <!-- Refresh Button -->
+        <button onclick="renderView(currentTab)" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition cursor-pointer" title="تحديث البيانات">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-700"></i>
+        </button>
+
+        <!-- Standalone Dashboard ZIP Download Button -->
+        <a href="/dashboard-standalone-complete.zip" download="dashboard-standalone-complete.zip" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-xs cursor-pointer" title="تحميل نسخة الداشبورد كاملة في ملف مضغوط">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span class="hidden md:inline">تحميل الداشبورد ZIP 📦</span>
+        </a>
+
+        <!-- User profile badge matching screenshot ("naz / سجل") -->
+        <div class="flex items-center gap-2 pr-2 border-r border-slate-200">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            N
+          </div>
+          <div class="hidden sm:block text-right">
+            <span class="text-xs font-black text-slate-950 block leading-tight">naz</span>
+            <span class="text-[10px] text-emerald-700 font-black">سجل العمليات • متصل</span>
+          </div>
+        </div>
+
+        <!-- Logout -->
+        <button onclick="handleLogout()" class="p-2 rounded-xl bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 transition cursor-pointer" title="تسجيل الخروج">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace (Sidebar + Dynamic Content) with Independent Scrolling -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+      
+      <!-- ================================================================= -->
+      <!-- SIDEBAR (Full list of requested menus and submenus) with independent scroll -->
+      <!-- ================================================================= -->
+      <aside id="adminSidebar" class="w-full md:w-64 lg:w-72 bg-white border-l border-slate-200 flex flex-col shrink-0 transition-all duration-200 shadow-xs h-full overflow-hidden">
+        
+        <div class="p-3 text-[11px] font-black text-slate-600 uppercase tracking-wider shrink-0 border-b border-slate-100">
+          قائمة التحكم الشاملة
+        </div>
+
+        <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-1 text-xs">
+          
+          <!-- 🌟 اللوحة الرئيسية والإحصائيات الحية (On-Demand) -->
+          <button id="tab-overview" onclick="switchTab('overview')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition cursor-pointer font-black mb-1 shadow-2xs">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="layout-dashboard" class="w-4 h-4 text-amber-600"></i>
+              <span>الرئيسية والإحصائيات الحية</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white font-black text-[9px]">LIVE ⚡</span>
+          </button>
+
+          <!-- 🛍️ إدارة المتجر والأصول الرقمية (On-Demand) -->
+          <button id="tab-store" onclick="switchTab('store')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black mb-1.5">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="shopping-bag" class="w-4 h-4 text-purple-600"></i>
+              <span>المتجر والأصول (SVGA)</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800 font-black text-[10px]">محدث 👑</span>
+          </button>
+
+          <!-- ⭐ قالب الجدول القياسي الموحد (Standard UI Table Template) -->
+          <button id="tab-standard_table_template" onclick="switchTab('standard_table_template')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition cursor-pointer font-black mb-2 shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="layout-grid" class="w-4 h-4 text-amber-700"></i>
+              <span>قالب الجدول القياسي الموحد</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[9px] uppercase">Standard UI</span>
+          </button>
+
+          <!-- 1. طلبات ويب سايت النجم -->
+          <button id="tab-gala_requests" onclick="switchTab('gala_requests')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="globe" class="w-4 h-4 text-sky-600"></i>
+              <span>طلبات موقع النجم</span>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[10px]">3</span>
+          </button>
+
+          <!-- 2. القلادات -->
+          <button id="tab-necklaces" onclick="switchTab('necklaces')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="gem" class="w-4 h-4 text-purple-600"></i>
+            <span>القلادات</span>
+          </button>
+
+          <!-- 3. صناديق الحظ -->
+          <button id="tab-lucky_boxes" onclick="switchTab('lucky_boxes')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="package" class="w-4 h-4 text-amber-600"></i>
+            <span>صناديق الحظ</span>
+          </button>
+
+          <!-- 4. صناديق الغرف -->
+          <button id="tab-room_boxes" onclick="switchTab('room_boxes')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="archive" class="w-4 h-4 text-emerald-600"></i>
+            <span>صناديق الغرف</span>
+          </button>
+
+          <!-- 5. إدارة المستخدمين -->
+          <button id="tab-users" onclick="switchTab('users')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+              <span>إدارة المستخدمين</span>
+            </div>
+            <span class="text-[10px] text-slate-600 font-mono font-bold">13 مستخدم</span>
+          </button>
+
+          <!-- 6. إدارة الوكالات (Accordion With 10 submenus) -->
+          <div class="space-y-0.5">
+            <button onclick="handleAgencyMenuClick()" class="w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="briefcase" class="w-4 h-4 text-indigo-600"></i>
+                <span>إدارة الوكالات</span>
+              </div>
+              <i id="submenu-agencies-arrow" data-lucide="chevron-left" class="w-4 h-4 text-slate-500 transition-transform"></i>
+            </button>
+            
+            <div id="submenu-agencies" class="pr-6 space-y-0.5">
+              <button id="tab-agency_hierarchy" onclick="switchTab('agency_hierarchy')" class="nav-tab-btn w-full px-3 py-2 rounded-xl text-right text-xs text-amber-950 bg-amber-50 hover:bg-amber-100 transition font-black flex items-center justify-between border border-amber-300 shadow-xs mb-1">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="network" class="w-4 h-4 text-amber-600"></i>
+                  <span>الهيكل الهرمي والتراكمي للوكالات 🏛️</span>
+                </div>
+                <span class="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[9px]">الهرم</span>
+              </button>
+              <button id="tab-agencies" onclick="switchTab('agencies')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">ملفات وتفاصيل الوكالات (الجدول)</button>
+              <button id="tab-agency_hours" onclick="switchTab('agency_hours')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">الساعات المحققة</button>
+              <button id="tab-agency_hosting" onclick="switchTab('agency_hosting')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">وكالة استضافة ومضيفين</button>
+              <button id="tab-agency_create_req" onclick="switchTab('agency_create_req')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">طلبات إنشاء الوكالة</button>
+              <button id="tab-agency_join_req" onclick="switchTab('agency_join_req')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">طلبات الانضمام للوكالة</button>
+              <button id="tab-agency_leave_req" onclick="switchTab('agency_leave_req')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">طلبات الخروج من الوكالة</button>
+              <button id="tab-agency_salaries" onclick="switchTab('agency_salaries')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">التحكم في رواتب المستخدمين</button>
+              <button id="tab-agency_target_reports" onclick="switchTab('agency_target_reports')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">تقارير التارجت المتحقق</button>
+              <button id="tab-agency_user_targets" onclick="switchTab('agency_user_targets')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">تارجت المستخدمين</button>
+              <button id="tab-agency_host_targets" onclick="switchTab('agency_host_targets')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">تارجت الوكلاء المتحقق</button>
+            </div>
+          </div>
+
+          <!-- 7. وكالات الشحن (برنامج الشاحن المستقل - مفصول تماماً عن الهيكل العائدي والتنظيمي) -->
+          <div class="my-1.5 pt-1.5 border-t border-slate-200 space-y-1">
+            <button id="tab-recharge_agencies" onclick="switchTab('recharge_agencies')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black border border-emerald-200 bg-emerald-50/50 shadow-2xs">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="credit-card" class="w-4 h-4 text-emerald-600"></i>
+                <span>وكالات الشحن (برنامج الشاحن)</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black">مستقل 💳</span>
+            </button>
+          </div>
+
+          <!-- 8. إدارة الغرف -->
+          <button id="tab-rooms" onclick="switchTab('rooms')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="mic" class="w-4 h-4 text-rose-600"></i>
+            <span>إدارة الغرف</span>
+          </button>
+
+          <!-- 9. إدارة الهدايا (VIP اهداء، إطار ودخول، إهداء خلفية غرفة) -->
+          <div class="space-y-0.5">
+            <button onclick="toggleSubmenu('submenu-gifts')" class="w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="gift" class="w-4 h-4 text-pink-600"></i>
+                <span>إدارة الهدايا</span>
+              </div>
+              <i id="submenu-gifts-arrow" data-lucide="chevron-left" class="w-4 h-4 text-slate-500 transition-transform"></i>
+            </button>
+            <div id="submenu-gifts" class="pr-6 space-y-0.5">
+              <button id="tab-gifts_catalog" onclick="switchTab('gifts_catalog')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold flex items-center justify-between">
+                <span>صندوق هدايا الروم والتحريك 🎁</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              </button>
+              <button id="tab-vips_dedic" onclick="switchTab('vips_dedic')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">VIP إهداء (vips_dedic)</button>
+              <button id="tab-gifts_frames" onclick="switchTab('gifts_frames')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">إطار ودخول</button>
+              <button id="tab-gifts_room_bg" onclick="switchTab('gifts_room_bg')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">أهداء خلفية غرفة</button>
+            </div>
+          </div>
+
+          <!-- 10. الشكاوي والحظر -->
+          <button id="tab-complaints_bans" onclick="switchTab('complaints_bans')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600"></i>
+            <span>الشكاوي والحظر</span>
+          </button>
+
+          <!-- 11. نظام الكونزات والشحن -->
+          <button id="tab-coins_recharge" onclick="switchTab('coins_recharge')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="coins" class="w-4 h-4 text-amber-600"></i>
+            <span>نظام الكونزات والشحن</span>
+          </button>
+
+          <!-- 12. الأحداث -->
+          <button id="tab-events" onclick="switchTab('events')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="calendar" class="w-4 h-4 text-sky-600"></i>
+            <span>الأحداث</span>
+          </button>
+
+          <!-- 13. إدارة المكافآت -->
+          <button id="tab-rewards" onclick="switchTab('rewards')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="award" class="w-4 h-4 text-emerald-600"></i>
+            <span>إدارة المكافآت</span>
+          </button>
+
+          <!-- 14. الألعاب -->
+          <button id="tab-games" onclick="switchTab('games')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="gamepad-2" class="w-4 h-4 text-violet-600"></i>
+            <span>الألعاب</span>
+          </button>
+
+          <!-- 15. التواصل الاجتماعي -->
+          <button id="tab-social" onclick="switchTab('social')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="message-circle" class="w-4 h-4 text-cyan-600"></i>
+            <span>التواصل الاجتماعي</span>
+          </button>
+
+          <!-- 16. العلاقات -->
+          <button id="tab-relationships" onclick="switchTab('relationships')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="heart" class="w-4 h-4 text-rose-600"></i>
+            <span>العلاقات</span>
+          </button>
+
+          <!-- 17. عائلات التطبيق -->
+          <button id="tab-families" onclick="switchTab('families')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="flag" class="w-4 h-4 text-amber-600"></i>
+            <span>عائلات التطبيق</span>
+          </button>
+
+          <!-- 18. مستويات المستخدمين (المستويات، تقارير اهداء المستويات) -->
+          <div class="space-y-0.5">
+            <button onclick="toggleSubmenu('submenu-levels')" class="w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="trending-up" class="w-4 h-4 text-teal-600"></i>
+                <span>مستويات المستخدمين</span>
+              </div>
+              <i id="submenu-levels-arrow" data-lucide="chevron-left" class="w-4 h-4 text-slate-500 transition-transform"></i>
+            </button>
+            <div id="submenu-levels" class="pr-6 space-y-0.5">
+              <button id="tab-levels" onclick="switchTab('levels')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">المستويات</button>
+              <button id="tab-level_gift_reports" onclick="switchTab('level_gift_reports')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">تقارير اهداء المستويات</button>
+            </div>
+          </div>
+
+          <!-- 19. الهدايا -->
+          <button id="tab-gifts_catalog" onclick="switchTab('gifts_catalog')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="sparkles" class="w-4 h-4 text-yellow-600"></i>
+            <span>الهدايا</span>
+          </button>
+
+          <!-- 20. Pks -->
+          <button id="tab-pks" onclick="switchTab('pks')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="swords" class="w-4 h-4 text-red-600"></i>
+            <span>Pks</span>
+          </button>
+
+          <!-- 21. ترتيب الفائزين الشهري -->
+          <button id="tab-monthly_winners" onclick="switchTab('monthly_winners')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="trophy" class="w-4 h-4 text-amber-600"></i>
+            <span>ترتيب الفائزين الشهري</span>
+          </button>
+
+          <!-- 22. الأوسمة -->
+          <button id="tab-medals" onclick="switchTab('medals')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="medal" class="w-4 h-4 text-orange-600"></i>
+            <span>الأوسمة</span>
+          </button>
+
+          <!-- 23. الارستقراطية -->
+          <button id="tab-aristocracy" onclick="switchTab('aristocracy')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="crown" class="w-4 h-4 text-amber-600"></i>
+            <span>الارستقراطية</span>
+          </button>
+
+          <!-- 24. إعدادات (البنارات، التحديثات، الصفحات، الدول، شريط التمرير، الرسائل الرسمية) -->
+          <div class="space-y-0.5">
+            <button onclick="toggleSubmenu('submenu-settings')" class="w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="settings" class="w-4 h-4 text-slate-600"></i>
+                <span>إعدادات</span>
+              </div>
+              <i id="submenu-settings-arrow" data-lucide="chevron-left" class="w-4 h-4 text-slate-500 transition-transform"></i>
+            </button>
+            <div id="submenu-settings" class="pr-6 space-y-0.5">
+              <button id="tab-settings_banners" onclick="switchTab('settings_banners')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">البنارات الافتتاحية</button>
+              <button id="tab-settings_updates" onclick="switchTab('settings_updates')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">التحديثات</button>
+              <button id="tab-settings_pages" onclick="switchTab('settings_pages')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">الصفحات</button>
+              <button id="tab-settings_countries" onclick="switchTab('settings_countries')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">الدول</button>
+              <button id="tab-settings_marquee" onclick="switchTab('settings_marquee')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">شريط التمرير</button>
+              <button id="tab-settings_broadcasts" onclick="switchTab('settings_broadcasts')" class="nav-tab-btn w-full px-3 py-1.5 rounded-lg text-right text-[11px] text-slate-800 hover:text-black hover:bg-slate-100 transition font-bold">الرسائل الرسمية</button>
+            </div>
+          </div>
+
+          <!-- 25. المتجر -->
+          <button id="tab-store" onclick="switchTab('store')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-600"></i>
+            <span>المتجر</span>
+          </button>
+
+          <!-- 26. Log viewer -->
+          <button id="tab-log_viewer" onclick="switchTab('log_viewer')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="file-text" class="w-4 h-4 text-sky-600"></i>
+            <span>Log viewer</span>
+          </button>
+
+          <!-- 27. طاقم الإدارة والصلاحيات -->
+          <button id="tab-staff_management" onclick="switchTab('staff_management')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="user-check" class="w-4 h-4 text-indigo-600"></i>
+            <span>طاقم الإدارة والصلاحيات</span>
+          </button>
+
+          <!-- 28. النسخ الاحتياطي والسيرفر -->
+          <button id="tab-database_backup" onclick="switchTab('database_backup')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="database" class="w-4 h-4 text-emerald-600"></i>
+            <span>النسخ الاحتياطي والسيرفر</span>
+          </button>
+
+          <!-- 29. الحظر الأمني الشامل للأجهزة والـ IP -->
+          <button id="tab-security_bans" onclick="switchTab('security_bans')" class="nav-tab-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 text-slate-900 hover:bg-slate-100 transition cursor-pointer font-black">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600"></i>
+            <span>الحظر الأمني الشامل</span>
+          </button>
+
+        </nav>
+      </aside>
+
+      <!-- ================================================================= -->
+      <!-- MAIN DYNAMIC CONTENT CONTAINER (Responsive Full-Width Canvas) with Independent Scroll -->
+      <!-- ================================================================= -->
+      <main class="flex-1 p-3 sm:p-5 lg:p-6 overflow-y-auto w-full h-full min-h-0 transition-all bg-slate-100 text-slate-950">
+        <div id="dynamicViewContainer" class="w-full space-y-6 text-slate-950">
+          <!-- Views rendered by admin.js using Standard UI Table Template -->
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Modal for Cumulative Agency Details (النافذة التراكمية لبيانات الوكالة والمضيفين - ملء الشاشة فوق الوكالات) -->
+  <div id="agencyCumulativeModal" class="hidden fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-xs flex flex-col overflow-hidden">
+    <div id="agencyCumulativeModalContent" class="bg-white w-full h-full overflow-hidden flex flex-col">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated Full-Screen View for Manager Agencies (عرض الوكالات التابعة للإدارة - ملء الشاشة بالكامل) -->
+  <div id="managerAgenciesFullscreenModal" class="hidden fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-xs flex flex-col overflow-hidden">
+    <div id="managerAgenciesFullscreenContent" class="bg-slate-100 w-full h-full overflow-hidden flex flex-col text-slate-950">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated Host Full Profile Modal (ملف المضيف المعتمد الشامل مع إحصائيات البث والوكالة) -->
+  <div id="globalHostProfileModal" class="hidden fixed inset-0 z-[80] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="globalHostProfileModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col text-slate-950 my-auto relative">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated User Profile Modal (ملف المستخدم والحساب الإداري) -->
+  <div id="globalUserQuickModal" class="hidden fixed inset-0 z-[80] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="globalUserQuickModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated Full Search Results Modal (نافذة نتائج البحث الشاملة والمصنفة) -->
+  <div id="globalAdminSearchFullModal" class="hidden fixed inset-0 z-[75] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="globalAdminSearchFullModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated Recharge Agent Quick Modal (ملف وكيل الشحن المعتمد) -->
+  <div id="globalRechargeAgentModal" class="hidden fixed inset-0 z-[80] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div id="globalRechargeAgentModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated Host Audit Sub-Modal (نافذة التدقيق التفاعلية المنفصلة بضغط زر لحسم النزاعات والألعاب والسحوبات وكشف الحساب والطباعة) -->
+  <div id="hostAuditSubModal" class="hidden fixed inset-0 z-[90] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="hostAuditSubModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-5xl max-h-[94vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically on demand (Lazy Loaded) -->
+    </div>
+  </div>
+
+  <!-- Dedicated Role & Permission Assignment Modal (نافذة منح الصلاحيات والأدوار المربوطة بالمعرف الأساسي الثابت 1001001+) -->
+  <div id="roleAssignmentModal" class="hidden fixed inset-0 z-[95] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="roleAssignmentModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically by window.openAssignRoleModal -->
+    </div>
+  </div>
+
+  <!-- Dedicated Manager Permissions Modal (نافذة تفويض الصلاحيات الإدارية الثلاث نقط ⋮ لإدارة الكابتن وباقي الإدارات) -->
+  <div id="managerPermissionsModal" class="hidden fixed inset-0 z-[96] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="managerPermissionsModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically by window.openManagerPermissionsModal -->
+    </div>
+  </div>
+
+  <!-- Dedicated Official Host Statement Printable Container (مساحة الطباعة المعتمدة لكشف وتدقيق المضيف) -->
+  <div id="officialHostStatementPrintContainer" class="hidden"></div>
+
+  <!-- 1. Dedicated Recharge Agency Master Modal (النافذة التفصيلية الشاملة لإدارة وكالة الشحن بكروت تفاعلية Lazy Loaded) -->
+  <div id="globalRechargeAgencyMasterModal" class="hidden fixed inset-0 z-[85] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="globalRechargeAgencyMasterModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-5xl max-h-[94vh] overflow-hidden flex flex-col text-slate-950 my-auto relative">
+      <!-- Injected dynamically on demand -->
+    </div>
+  </div>
+
+  <!-- 2. Dedicated Tier Rates Manager Modal (لوحة التحكم بأسعار الصرف وفئات الوكالات Tier A/B/C) -->
+  <div id="globalTierRatesManagerModal" class="hidden fixed inset-0 z-[86] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="globalTierRatesManagerModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- 3. Dedicated Host-to-Agency P2P Conversion Modal (نظام تحويل أرباح المضيف للوكيل P2P وتغذية الخزينة) -->
+  <div id="globalHostP2pConversionModal" class="hidden fixed inset-0 z-[86] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="globalHostP2pConversionModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- 4. Dedicated Create Recharge Agency Modal (إنشاء وكالة شحن جديدة) -->
+  <div id="globalCreateRechargeAgencyModal" class="hidden fixed inset-0 z-[86] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="globalCreateRechargeAgencyModalContent" class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-xl max-h-[92vh] overflow-hidden flex flex-col text-slate-950 my-auto">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- Dedicated Complete Project ZIP Download Modal (نافذة تحميل حزمة المشروع البرمجي كاملة) -->
+  <div id="globalDownloadZipModal" class="hidden fixed inset-0 z-[99] bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl border-2 border-slate-300 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col text-slate-950 my-auto animate-fade-in">
+      <!-- Header -->
+      <div class="p-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-xl">
+            📦
+          </div>
+          <div>
+            <h3 class="font-black text-base">تحميل حزمة المشروع البرمجية كاملة</h3>
+            <p class="text-xs text-emerald-100 font-bold">ملف ZIP شامل كافة الأكواد والخوادم والواجهات</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.closeDownloadZipModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-sm font-black transition cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 space-y-4 text-xs">
+        <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2">
+          <div class="flex items-center justify-between font-black text-sm">
+            <span>الملف: al-najm-dashboard-complete.zip</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-xs font-mono">~10 MB</span>
+          </div>
+          <p class="text-xs text-emerald-800 leading-relaxed font-bold">
+            يحتوي الملف على: خادم الواجهة الخلفية الكامل (server.ts)، لوحة التحكم (admin.js و index.html)، كافة الصور والخلفيات والشعارات، ملفات قواعد البيانات، وتكوينات React و Node.js.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block font-black text-slate-800">رابط التحميل المباشر للفتح في المتصفح:</label>
+          <div class="flex items-center gap-2">
+            <input 
+              type="text" 
+              id="directZipDownloadUrlInput" 
+              readonly 
+              class="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 font-mono text-[11px] text-slate-800 select-all" 
+            />
+            <button 
+              type="button" 
+              onclick="window.copyDirectZipDownloadUrl()" 
+              id="copyZipBtn"
+              class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-black whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span id="copyZipBtnText">نسخ الرابط</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+          <a 
+            id="modalDirectDownloadLink"
+            href="/al-najm-dashboard-complete.zip" 
+            download="al-najm-dashboard-complete.zip"
+            onclick="window.triggerDirectZipDownload(event)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full sm:flex-1 py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-center text-sm shadow-md transition cursor-pointer flex items-center justify-center gap-2 active:scale-95">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>بدء التحميل المباشر الآن 📥</span>
+          </a>
+          
+          <button 
+            type="button" 
+            onclick="window.closeDownloadZipModal()" 
+            class="w-full sm:w-auto py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-center text-xs transition cursor-pointer border border-slate-300">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/admin/views/view-loader.js"></script>
+  <script src="/admin/admin-data.js"></script>
+  <script src="/admin/admin-table.js"></script>
+  <script src="/admin/media-compressor.js"></script>
+  <script src="/admin/admin-recharge-agencies.js"></script>
+  <script src="/admin/admin-rooms.js"></script>
+  <script src="/admin/admin-gifts-cms.js"></script>
+  <script src="/admin/admin-store-cms.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>
